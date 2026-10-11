@@ -8,6 +8,7 @@ import { makeSessionGroup } from "./groups/session"
 import { makePermissionGroup } from "./groups/permission"
 import { FileSystemGroup } from "./groups/fs"
 import { CommandGroup } from "./groups/command"
+import { ConceptGroup } from "./groups/concept"
 import { SkillGroup } from "./groups/skill"
 import { EventGroup, makeEventGroup } from "./groups/event"
 import type { Definition } from "@opencode-ai/schema/event"
@@ -53,6 +54,7 @@ const makeApiFromGroup = <
     .add(makeQuestionGroup(locationMiddleware, sessionLocationMiddleware))
     .add(ReferenceGroup.middleware(locationMiddleware))
     .add(ProjectCopyGroup.middleware(locationMiddleware))
+    .add(ConceptGroup.middleware(locationMiddleware))
     .annotateMerge(
       OpenApi.annotations({
         title: "opencode HttpApi",

@@ -681,6 +681,18 @@ const adaptGroup17 = (raw: RawClient["server.projectCopy"]) => ({
   refresh: Endpoint17_2(raw),
 })
 
+type Endpoint18_0Request = Parameters<RawClient["server.concept"]["concept.status.set"]>[0]
+type Endpoint18_0Input = {
+  readonly id: Endpoint18_0Request["params"]["id"]
+  readonly status: Endpoint18_0Request["payload"]["status"]
+}
+const Endpoint18_0 = (raw: RawClient["server.concept"]) => (input: Endpoint18_0Input) =>
+  raw["concept.status.set"]({ params: { id: input["id"] }, payload: { status: input["status"] } }).pipe(
+    Effect.mapError(mapClientError),
+  )
+
+const adaptGroup18 = (raw: RawClient["server.concept"]) => ({ set: Endpoint18_0(raw) })
+
 const adaptClient = (raw: RawClient) => ({
   health: adaptGroup0(raw["server.health"]),
   location: adaptGroup1(raw["server.location"]),
@@ -700,6 +712,7 @@ const adaptClient = (raw: RawClient) => ({
   questions: adaptGroup15(raw["server.question"]),
   references: adaptGroup16(raw["server.reference"]),
   projectCopies: adaptGroup17(raw["server.projectCopy"]),
+  "server.concept": adaptGroup18(raw["server.concept"]),
 })
 
 export const make = (options?: { readonly baseUrl?: URL | string }) =>
