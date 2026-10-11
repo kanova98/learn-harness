@@ -16,6 +16,7 @@ import { isServer, render } from "solid-js/web"
 import { Icon as IconV2 } from "@opencode-ai/ui/v2/icon"
 import { IconButtonV2 } from "@opencode-ai/ui/v2/icon-button-v2"
 import { TooltipV2 } from "@opencode-ai/ui/v2/tooltip-v2"
+import { disposeConceptMarks, markConcepts, type ConceptMarkLabels } from "./concept-mark"
 import { canReusePendingBlock, completedProjection } from "./markdown-projection"
 import type { Block, Projection } from "./markdown-stream"
 import {
@@ -275,11 +276,12 @@ function markInlineCode(root: HTMLDivElement) {
   }
 }
 
-function decorate(root: HTMLDivElement, labels: CopyLabels) {
+function decorate(root: HTMLDivElement, labels: CopyLabels & { concept: ConceptMarkLabels }) {
   const blocks = Array.from(root.querySelectorAll("pre"))
   for (const block of blocks) {
     ensureCodeWrapper(block, labels)
   }
+  markConcepts(root, labels.concept)
   if (!document.body.hasAttribute("data-new-layout")) return
   markInlineCode(root)
   markCodeLinks(root)
@@ -327,6 +329,7 @@ function setupCodeCopy(root: HTMLDivElement, getLabels: () => CopyLabels) {
       clearTimeout(timeout)
     }
     disposeCopyButtons(root)
+    disposeConceptMarks(root)
   }
 }
 
@@ -501,6 +504,7 @@ export function Markdown(
     if (isServer) return
     if (content.length === 0) {
       disposeCopyButtons(container)
+      disposeConceptMarks(container)
       container.innerHTML = ""
       return
     }
@@ -508,6 +512,16 @@ export function Markdown(
     const labels = {
       copy: i18n.t("ui.message.copy"),
       copied: i18n.t("ui.message.copied"),
+      concept: {
+        learn: i18n.t("ui.conceptMark.action.learn"),
+        markKnown: i18n.t("ui.conceptMark.action.markKnown"),
+        mute: i18n.t("ui.conceptMark.action.mute"),
+        snooze: i18n.t("ui.conceptMark.action.snooze"),
+        refresh: i18n.t("ui.conceptMark.action.refresh"),
+        editNotes: i18n.t("ui.conceptMark.action.editNotes"),
+        demote: i18n.t("ui.conceptMark.action.demote"),
+        label: (name: string) => i18n.t("ui.conceptMark.label", { name }),
+      } satisfies ConceptMarkLabels,
     }
     const nextCodeKeys = new Set(content.filter((block) => block.mode === "code").map((block) => block.key))
     activeCodeKeys.forEach((key) => {
@@ -520,6 +534,7 @@ export function Markdown(
       const child = container.lastElementChild
       if (!child) break
       disposeCopyButtons(child)
+      disposeConceptMarks(child)
       child.remove()
     }
     container
@@ -586,7 +601,7 @@ function disposeCode(key: string) {
   disposeStreamingCode(key)
 }
 
-function updateBlock(container: HTMLDivElement, index: number, block: RenderedBlock, labels: CopyLabels) {
+function updateBlock(container: HTMLDivElement, index: number, block: RenderedBlock, labels: CopyLabels & { concept: ConceptMarkLabels }) {
   const current = container.children[index]
   if (block.mode === "code") {
     updateCodeBlock(container, current, block, labels)
@@ -617,8 +632,8 @@ function updateBlock(container: HTMLDivElement, index: number, block: RenderedBl
       if (
         fromEl instanceof HTMLElement &&
         toEl instanceof HTMLElement &&
-        fromEl.getAttribute("data-slot") === "markdown-copy-button" &&
-        toEl.getAttribute("data-slot") === "markdown-copy-button"
+        fromEl.getAttribute("data-slot") === toEl.getAttribute("data-slot") &&
+        (fromEl.getAttribute("data-slot") === "markdown-copy-button" || fromEl.getAttribute("data-slot") === "concept-mark-host")
       ) {
         return false
       }
@@ -626,7 +641,10 @@ function updateBlock(container: HTMLDivElement, index: number, block: RenderedBl
       return true
     },
     onBeforeNodeDiscarded: (node) => {
-      if (node instanceof Element) disposeCopyButtons(node)
+      if (node instanceof Element) {
+        disposeCopyButtons(node)
+        disposeConceptMarks(node)
+      }
       return true
     },
   })

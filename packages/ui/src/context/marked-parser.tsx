@@ -13,6 +13,7 @@ export function createMarkdownParser(highlight: (code: string, language: string)
       },
     },
     katexExtension,
+    conceptMarkExtension,
     markedShiki({ highlight }),
   )
 }
@@ -65,4 +66,56 @@ function renderKatexToken(token: Tokens.Generic) {
     displayMode: token.displayMode === true,
     throwOnError: false,
   })
+}
+
+// Written by packages/concept-tagger as [[concept:<vault id>:<status>]]<surface text>[[/concept]].
+// "muted" concepts render as plain text: muting means "stop highlighting this", not "hide status".
+const conceptMarkRegex = /^\[\[concept:([^:\]]+):(unlearned|learned|muted|snoozed)\]\]([\s\S]*?)\[\[\/concept\]\]/
+const conceptMarkTiers: Record<string, "new" | "known" | undefined> = {
+  unlearned: "new",
+  snoozed: "new",
+  learned: "known",
+}
+
+const conceptMarkExtension: MarkedExtension = {
+  extensions: [
+    {
+      name: "conceptMark",
+      level: "inline",
+      start(src) {
+        const index = src.indexOf("[[concept:")
+        if (index === -1) return
+        return index
+      },
+      tokenizer(src) {
+        const match = src.match(conceptMarkRegex)
+        if (!match) return
+        return {
+          type: "conceptMark",
+          raw: match[0],
+          id: match[1],
+          status: match[2],
+          text: match[3],
+        }
+      },
+      renderer: renderConceptMarkToken,
+    },
+  ],
+}
+
+function renderConceptMarkToken(token: Tokens.Generic) {
+  const id = typeof token.id === "string" ? token.id : ""
+  const status = typeof token.status === "string" ? token.status : ""
+  const text = typeof token.text === "string" ? token.text : ""
+  const tier = conceptMarkTiers[status]
+  if (!tier) return escapeHtml(text)
+  return `<span data-component="concept-mark" data-concept-tier="${tier}" data-concept-id="${escapeAttr(id)}" data-concept-status="${escapeAttr(status)}">${escapeHtml(text)}</span>`
+}
+
+function escapeHtml(text: string) {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+}
+
+function escapeAttr(text: string) {
+  return escapeHtml(text).replace(/"/g, "&quot;")
 }
