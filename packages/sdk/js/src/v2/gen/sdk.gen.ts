@@ -267,6 +267,8 @@ import type {
   V2AgentListResponses,
   V2CommandListErrors,
   V2CommandListResponses,
+  V2ConceptStatusSetErrors,
+  V2ConceptStatusSetResponses,
   V2CredentialRemoveErrors,
   V2CredentialRemoveResponses,
   V2CredentialUpdateErrors,
@@ -6987,6 +6989,50 @@ export class ProjectCopy2 extends HeyApiClient {
   }
 }
 
+export class Status extends HeyApiClient {
+  /**
+   * Set concept status
+   *
+   * Mark a concept-tagger vault concept as learned, muted, snoozed, or unlearned.
+   */
+  public set<ThrowOnError extends boolean = false>(
+    parameters: {
+      id: string
+      status?: "unlearned" | "learned" | "muted" | "snoozed"
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "id" },
+            { in: "body", key: "status" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<V2ConceptStatusSetResponses, V2ConceptStatusSetErrors, ThrowOnError>({
+      url: "/api/concept/{id}/status",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+}
+
+export class Concept extends HeyApiClient {
+  private _status?: Status
+  get status(): Status {
+    return (this._status ??= new Status({ client: this.client }))
+  }
+}
+
 export class V2 extends HeyApiClient {
   private _health?: Health
   get health(): Health {
@@ -7071,6 +7117,11 @@ export class V2 extends HeyApiClient {
   private _projectCopy?: ProjectCopy2
   get projectCopy(): ProjectCopy2 {
     return (this._projectCopy ??= new ProjectCopy2({ client: this.client }))
+  }
+
+  private _concept?: Concept
+  get concept(): Concept {
+    return (this._concept ??= new Concept({ client: this.client }))
   }
 }
 

@@ -112,6 +112,8 @@ import type {
   ProjectCopiesRemoveOutput,
   ProjectCopiesRefreshInput,
   ProjectCopiesRefreshOutput,
+  ServerConceptSetInput,
+  ServerConceptSetOutput,
 } from "./types"
 import { ClientError } from "./client-error"
 
@@ -982,6 +984,20 @@ export function make(options: ClientOptions) {
             query: { location: input["location"] },
             successStatus: 204,
             declaredStatuses: [400, 401],
+            empty: true,
+          },
+          requestOptions,
+        ),
+    },
+    "server.concept": {
+      set: (input: ServerConceptSetInput, requestOptions?: RequestOptions) =>
+        request<ServerConceptSetOutput>(
+          {
+            method: "POST",
+            path: `/api/concept/${encodeURIComponent(input.id)}/status`,
+            body: { status: input["status"] },
+            successStatus: 204,
+            declaredStatuses: [503, 401, 400],
             empty: true,
           },
           requestOptions,

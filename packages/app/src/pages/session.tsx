@@ -27,6 +27,7 @@ import { useLocal } from "@/context/local"
 import { FileProvider, selectionFromLines, useFile, type FileSelection, type SelectedLineRange } from "@/context/file"
 import { createStore } from "solid-js/store"
 import type { SessionReviewLineComment } from "@opencode-ai/session-ui/session-review"
+import { setConceptActionClient } from "@opencode-ai/session-ui/concept-mark"
 import { ResizeHandle } from "@opencode-ai/ui/resize-handle"
 import { Select } from "@opencode-ai/ui/select"
 import { SelectV2 } from "@opencode-ai/ui/v2/select-v2"
@@ -285,6 +286,12 @@ function ResolvedTargetSessionRoute() {
 function TargetSessionPage() {
   const sdk = useSDK()
   const serverSDK = useServerSDK()
+  createEffect(() => {
+    setConceptActionClient({
+      setStatus: (id, status) => sdk().client.v2.concept.status.set({ id, status }),
+    })
+  })
+  onCleanup(() => setConceptActionClient(undefined))
   return (
     <Show when={`${serverSDK().scope}\0${sdk().directory}`} keyed>
       <SessionPage />

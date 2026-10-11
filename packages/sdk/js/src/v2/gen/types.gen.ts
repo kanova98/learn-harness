@@ -13588,6 +13588,43 @@ export type V2ProjectCopyRefreshResponses = {
 
 export type V2ProjectCopyRefreshResponse = V2ProjectCopyRefreshResponses[keyof V2ProjectCopyRefreshResponses]
 
+export type V2ConceptStatusSetData = {
+  body: {
+    status: "unlearned" | "learned" | "muted" | "snoozed"
+  }
+  path: {
+    id: string
+  }
+  query?: never
+  url: "/api/concept/{id}/status"
+}
+
+export type V2ConceptStatusSetErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UnauthorizedError
+   */
+  401: UnauthorizedError
+  /**
+   * ServiceUnavailableError
+   */
+  503: ServiceUnavailableError
+}
+
+export type V2ConceptStatusSetError = V2ConceptStatusSetErrors[keyof V2ConceptStatusSetErrors]
+
+export type V2ConceptStatusSetResponses = {
+  /**
+   * <No Content>
+   */
+  204: void
+}
+
+export type V2ConceptStatusSetResponse = V2ConceptStatusSetResponses[keyof V2ConceptStatusSetResponses]
+
 export type PtyConnectData = {
   body?: never
   path: {

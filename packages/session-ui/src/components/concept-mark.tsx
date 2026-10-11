@@ -22,10 +22,38 @@ type ConceptMarkProps = {
   labels: ConceptMarkLabels
 }
 
-// There's no app<->vault bridge yet (concept-tagger's vault lives in the plugin process).
-// These actions are UI-only placeholders until that write path exists.
-function stubConceptAction(action: string, id: string) {
-  console.info(`[concept-tagger] "${action}" is not wired up yet for "${id}"`)
+export type ConceptActionClient = {
+  setStatus: (id: string, status: "unlearned" | "learned" | "muted" | "snoozed") => Promise<unknown>
+}
+
+let actionClient: ConceptActionClient | undefined
+
+// Set once, from wherever the app has a directory-scoped SDK (see TargetSessionPage
+// in packages/app/src/pages/session.tsx) — session-ui itself has no server access.
+export function setConceptActionClient(client: ConceptActionClient | undefined) {
+  actionClient = client
+}
+
+// Learn/Refresh (open a tutor session) and Edit notes (in-place note editor) have no
+// backing feature yet, so only the plain status writes below are wired through.
+const statusActions: Partial<Record<string, "unlearned" | "learned" | "muted" | "snoozed">> = {
+  markKnown: "learned",
+  mute: "muted",
+  snooze: "snoozed",
+  demote: "unlearned",
+}
+
+function performConceptAction(action: string, id: string) {
+  const status = statusActions[action]
+  if (!status) {
+    console.info(`[concept-tagger] "${action}" is not wired up yet for "${id}"`)
+    return
+  }
+  if (!actionClient) {
+    console.info(`[concept-tagger] no concept action client registered; ignoring "${action}" for "${id}"`)
+    return
+  }
+  actionClient.setStatus(id, status).catch((error) => console.error(`[concept-tagger] failed to ${action} "${id}"`, error))
 }
 
 function ConceptMark(props: ConceptMarkProps) {
@@ -46,16 +74,16 @@ function ConceptMark(props: ConceptMarkProps) {
             when={props.tier === "new"}
             fallback={
               <>
-                <MenuV2.Item onSelect={() => stubConceptAction("refresh", props.id)}>{props.labels.refresh}</MenuV2.Item>
-                <MenuV2.Item onSelect={() => stubConceptAction("editNotes", props.id)}>{props.labels.editNotes}</MenuV2.Item>
-                <MenuV2.Item onSelect={() => stubConceptAction("demote", props.id)}>{props.labels.demote}</MenuV2.Item>
+                <MenuV2.Item onSelect={() => performConceptAction("refresh", props.id)}>{props.labels.refresh}</MenuV2.Item>
+                <MenuV2.Item onSelect={() => performConceptAction("editNotes", props.id)}>{props.labels.editNotes}</MenuV2.Item>
+                <MenuV2.Item onSelect={() => performConceptAction("demote", props.id)}>{props.labels.demote}</MenuV2.Item>
               </>
             }
           >
-            <MenuV2.Item onSelect={() => stubConceptAction("learn", props.id)}>{props.labels.learn}</MenuV2.Item>
-            <MenuV2.Item onSelect={() => stubConceptAction("markKnown", props.id)}>{props.labels.markKnown}</MenuV2.Item>
-            <MenuV2.Item onSelect={() => stubConceptAction("mute", props.id)}>{props.labels.mute}</MenuV2.Item>
-            <MenuV2.Item onSelect={() => stubConceptAction("snooze", props.id)}>{props.labels.snooze}</MenuV2.Item>
+            <MenuV2.Item onSelect={() => performConceptAction("learn", props.id)}>{props.labels.learn}</MenuV2.Item>
+            <MenuV2.Item onSelect={() => performConceptAction("markKnown", props.id)}>{props.labels.markKnown}</MenuV2.Item>
+            <MenuV2.Item onSelect={() => performConceptAction("mute", props.id)}>{props.labels.mute}</MenuV2.Item>
+            <MenuV2.Item onSelect={() => performConceptAction("snooze", props.id)}>{props.labels.snooze}</MenuV2.Item>
           </Show>
         </MenuV2.Content>
       </MenuV2.Portal>

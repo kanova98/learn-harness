@@ -2805,3 +2805,10 @@ export type ProjectCopiesRefreshInput = {
 }
 
 export type ProjectCopiesRefreshOutput = void
+
+export type ServerConceptSetInput = {
+  readonly id: { readonly id: string }["id"]
+  readonly status: { readonly status: "unlearned" | "learned" | "muted" | "snoozed" }["status"]
+}
+
+export type ServerConceptSetOutput = void
