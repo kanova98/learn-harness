@@ -217,4 +217,13 @@ export const dict: Record<string, string> = {
   "ui.question.multiHint": "Select all answers that apply",
   "ui.question.singleHint": "Select one answer",
   "ui.question.custom.placeholder": "Type your answer...",
+
+  "ui.conceptMark.label": "Concept: {{name}}",
+  "ui.conceptMark.action.learn": "Learn",
+  "ui.conceptMark.action.markKnown": "Mark known",
+  "ui.conceptMark.action.mute": "Mute",
+  "ui.conceptMark.action.snooze": "Snooze",
+  "ui.conceptMark.action.refresh": "Refresh",
+  "ui.conceptMark.action.editNotes": "Edit notes",
+  "ui.conceptMark.action.demote": "Demote",
 }

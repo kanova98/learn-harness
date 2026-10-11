@@ -1,0 +1,29 @@
+[data-component="concept-mark"] {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0 2px;
+  margin: 0 -2px;
+  outline: none;
+}
+
+[data-component="concept-mark"][data-concept-tier="new"] {
+  background: var(--v2-state-bg-warning);
+  color: var(--v2-state-fg-warning);
+  box-shadow: 0 0 0 0.5px var(--v2-state-border-warning);
+}
+
+[data-component="concept-mark"][data-concept-tier="new"]:hover,
+[data-component="concept-mark"][data-concept-tier="new"]:focus-visible {
+  box-shadow: 0 0 0 1px var(--v2-state-border-warning);
+}
+
+[data-component="concept-mark"][data-concept-tier="known"] {
+  color: var(--v2-text-text-muted);
+  border-bottom: 1px dotted var(--v2-border-border-muted);
+}
+
+[data-component="concept-mark"][data-concept-tier="known"]:hover,
+[data-component="concept-mark"][data-concept-tier="known"]:focus-visible {
+  color: var(--v2-text-text-base);
+  border-bottom-color: var(--v2-border-border-strong);
+}
